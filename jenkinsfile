@@ -58,6 +58,14 @@ pipeline {
             }
         }
 
+        stage('Check Docker') {
+    steps {
+        sh 'docker --version'
+        sh 'which docker'
+    }
+}
+
+
         stage('Build Docker Image') {  // ✅ Build Docker image
             steps {
                 sh 'docker build -t node-app .'
