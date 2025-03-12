@@ -42,7 +42,7 @@ pipeline {
     stages {
         stage('Clone') {
             steps {
-                git 'https://github.com/deepanshu1334/k8s-deployment.git'
+               git branch: 'main', url: 'https://github.com/deepanshu1334/k8s-deployment.git'
             }
         }
 
