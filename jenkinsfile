@@ -1,0 +1,32 @@
+pipeline{
+    agent any{
+        stages{
+            stage('Clone'){
+                steps{
+                 git 'https://github.com/deepanshu1334/k8s-deployment.git'
+                }
+                 
+
+            }
+            stage('Build'){
+                steps{
+                sh 'docker build -t node-app .'
+            }
+            }
+
+            stage('test'){
+                steps{
+                sh 'npm test'
+            }
+            }
+
+            stage('Deploy to kuberntes'){
+                steps{
+                sh 'kubectl apply -f deployment.yaml'
+                sh 'kubectl apply -f service.yaml'
+            }  
+            }
+        }
+
+    }
+}

@@ -14,6 +14,7 @@ spec:
     spec:
       containers:
         - name: node-app
-          image: node-app:latest
+          image: node-app
+          imagePullPolicy: Never #pulling image from locally rether from registry 
           ports:
             - containerPort: 3000
