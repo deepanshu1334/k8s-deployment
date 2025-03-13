@@ -34,49 +34,174 @@
 // }
 
 
+// pipeline {
+//     agent {
+//         docker { image 'node:18-alpine' }  // ✅ Use Node.js Docker image
+//     }
+
+//     stages {
+//         stage('Clone') {
+//             steps {
+//                git branch: 'main', url: 'https://github.com/deepanshu1334/k8s-deployment.git'
+//             }
+//         }
+
+//         stage('Install Dependencies') {  // ✅ Install npm dependencies
+//             steps {
+//                 sh 'npm install'
+//             }
+//         }
+
+//         stage('Test') {  // ✅ Run npm test
+//             steps {
+//                 sh 'npm test'
+//             }
+//         }
+
+//         stage('Check Docker') {
+//     steps {
+//         sh 'docker --version'
+//         sh 'which docker'
+//     }
+// }
+
+
+//         stage('Build Docker Image') {  // ✅ Build Docker image
+//             steps {
+//                 sh 'docker build -t node-app .'
+//             }
+//         }
+
+//         stage('Deploy to Kubernetes') {  // ✅ Deploy to Kubernetes
+//             steps {
+//                 sh 'kubectl apply -f deployment.yaml'
+//                 sh 'kubectl apply -f service.yaml'
+//             }
+//         }
+//     }
+// }
+
+
+
+
+
+
+// pipeline {
+//     agent {
+//         docker { image 'node:18-alpine' }  // ✅ Use Node.js Docker image
+//     }
+
+//     stages {
+//         stage('Clone') {
+//             steps {
+//                git branch: 'main', url: 'https://github.com/deepanshu1334/k8s-deployment.git'
+//             }
+//         }
+
+//         stage('Install Dependencies') {  // ✅ Install npm dependencies
+//             steps {
+//                 sh 'npm install'
+//             }
+//         }
+
+//         stage('Test') {  // ✅ Run npm test
+//             steps {
+//                 sh 'npm test'
+//             }
+//         }
+
+//         stage('Check Docker') {
+//     steps {
+//         sh 'docker --version'
+//         sh 'which docker'
+//     }
+// }
+
+
+//         stage('Build Docker Image') {  // ✅ Build Docker image
+//             steps {
+//                 sh 'docker build -t node-app .'
+//             }
+//         }
+
+//         stage('Deploy to Kubernetes') {  // ✅ Deploy to Kubernetes
+//             steps {
+//                 sh 'kubectl apply -f deployment.yaml'
+//                 sh 'kubectl apply -f service.yaml'
+//             }
+//         }
+//     }
+// }
+
+
 pipeline {
     agent {
         docker { image 'node:18-alpine' }  // ✅ Use Node.js Docker image
     }
 
+    environment {
+        SONAR_TOKEN = credentials('sonarqube-token')  // ✅ Fetch SonarQube token from Jenkins credentials
+    }
+
     stages {
         stage('Clone') {
             steps {
-               git branch: 'main', url: 'https://github.com/deepanshu1334/k8s-deployment.git'
+                git branch: 'main', url: 'https://github.com/deepanshu1334/k8s-deployment.git'
             }
         }
 
-        stage('Install Dependencies') {  // ✅ Install npm dependencies
+        stage('Install Dependencies') {  
             steps {
                 sh 'npm install'
             }
         }
 
-        stage('Test') {  // ✅ Run npm test
+        stage('SonarQube Analysis') {  // ✅ Added SonarQube stage
+            steps {
+                withSonarQubeEnv('SonarQube') {  // ✅ Uses SonarQube configured inside Jenkins
+                    sh '''
+                    sonar-scanner \
+                        -Dsonar.projectKey=k8s-deployment \
+                        -Dsonar.sources=. \
+                        -Dsonar.login=$SONAR_TOKEN
+                    '''
+                }
+            }
+        }
+
+        stage('Test') {  
             steps {
                 sh 'npm test'
             }
         }
 
         stage('Check Docker') {
-    steps {
-        sh 'docker --version'
-        sh 'which docker'
-    }
-}
+            steps {
+                sh 'docker --version'
+                sh 'which docker'
+            }
+        }
 
-
-        stage('Build Docker Image') {  // ✅ Build Docker image
+        stage('Build Docker Image') {  
             steps {
                 sh 'docker build -t node-app .'
             }
         }
 
-        stage('Deploy to Kubernetes') {  // ✅ Deploy to Kubernetes
+        stage('Deploy to Kubernetes') {  
             steps {
                 sh 'kubectl apply -f deployment.yaml'
                 sh 'kubectl apply -f service.yaml'
             }
+        }
+    }
+
+    post {
+        success {
+            echo '✅ Pipeline executed successfully!'
+        }
+        failure {
+            echo '❌ Pipeline failed!'
         }
     }
 }
